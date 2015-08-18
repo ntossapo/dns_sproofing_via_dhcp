@@ -2,12 +2,21 @@
  * Created by benvo_000 on 18/8/2558.
  */
 var port = 67;
-var host = "172.19.74.64";
+var host = "192.168.1.4";
 
 var dgram = require('dgram');
 var server = dgram.createSocket('udp4');
 
-//var
+var dhcpRequestType = {
+    1 : "DHCP Discover message (DHCPDiscover)",
+    1 : "DHCP Offer message (DHCPOffer)",
+    1 : "DHCP Request message (DHCPRequest)",
+    1 : "DHCP Decline message (DHCPDecline)",
+    1 : "DHCP Acknowledgment message (DHCPAck)",
+    1 : "DHCP Negative Acknowledgment message (DHCPNak)",
+    1 : "DHCP Release message (DHCPRelease)",
+    1 : "DHCP Informational message (DHCPInform)",
+}
 
 server.on('listening', function(){
     var address = server.address();
@@ -30,10 +39,12 @@ server.on('message', function(message, remote){
             console.log(length);
             var hostname = "";
             for(var j = 0;j < length;j++){
-                hostname += message.toString("ascii", i+j, i+j+1);
+                hostname += message.toString("ascii", i+j+1, i+j+2);
             }
             console.log("Host Name: " + hostname);
             break;
+        }else if(message.toSring("hex", i, i+1) == "35"){
+
         }
     }
     console.log("*************************************************************");
