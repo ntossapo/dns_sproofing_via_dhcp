@@ -2,7 +2,7 @@
  * Created by benvo_000 on 18/8/2558.
  */
 var port = 67;
-var host = "192.168.1.4";
+var host = "192.168.1.101";
 
 var dgram = require('dgram');
 var server = dgram.createSocket('udp4');
@@ -29,6 +29,8 @@ server.on('message', function(message, remote){
     console.log(remote.address + ":" + remote.port);
     ///console.log("*************************************************************");
     //console.log(message);
+    var date = new Date();
+    console.log(date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());
     console.log("*************************************************************");
     console.log(message.length);
     console.log("Transaction Id: 0x" + message.toString("hex", 4, 8));
