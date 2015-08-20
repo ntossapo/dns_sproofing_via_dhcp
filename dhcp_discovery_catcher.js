@@ -2,7 +2,7 @@
  * Created by benvo_000 on 18/8/2558.
  */
 var port = 67;
-var host = "172.19.74.84";
+var host = "172.19.74.221";
 
 var dgram = require('dgram');
 var server = dgram.createSocket('udp4');
@@ -33,10 +33,16 @@ var requestItemList = {
     31: "Router Discovery",
     32: "Router Request",
     33: "Static Route",
+    43: "Vendor Specific Information",
+    44: "NetBIOS over TCP/IP Name Server",
+    46: "NetBIOS over TCP/IP Node Type",
+    47: "NetBIOS over TCP/IP Scope",
     51: "IP Address Lease Time",
     58: "Renewal Time Value",
     59: "Rebinding Time Value",
     119: "Domain Search",
+    121: "Classless Static Route",
+    249: "Private/Classless Static Route(Microsoft)",
     252: "Private/Proxy Auto-Discovery"
 };
 
@@ -73,20 +79,23 @@ server.on('message', function(message, remote){
                 if(message.toString("hex", j, j+1) == "35" && checker["MessageType"] == false){
                     console.log("Request Type : " + dhcpRequestType[message[j+2]]);
                     checker["MessageType"] = true;
+                    j=j+2;
                 }
                 if(message.toString("hex", j, j+1) == "32" && checker["RequestIp"] == false){
                     console.log("Request For IP : " + message[j+2] + "." + message[j+3] + "." + message[j+4] + "." + message[j+5]);
                     checker["RequestIp"] = true;
+                    j=j+5;
                 }
                 if(message[j-1] != 60 && message.toString("hex", j, j+1) == "0c" && checker["Hostname"] == false){
                     var length = parseInt(message[j+1]);
                     console.log("Hostname : " + message.toString("ascii", j+2, j+2+length));
                     checker["Hostname"] = true;
+                    j=j+2+length;
                 }
                 if(message.toString("hex", j, j+1) == "37" && checker["RequestOption"] == false){
                     console.log("Request Item");
                     var length = message[j+1];
-                    for(var k = j; k < j+length; k++){
+                    for(var k = j+2; k < j+length; k++){
                         console.log("\t- " + requestItemList[message[k]]);
                     }
                     checker["RequestOption"] = true;
