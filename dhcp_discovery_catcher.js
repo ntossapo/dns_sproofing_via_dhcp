@@ -105,6 +105,7 @@ server.on('message', function(message, remote){
         }
     }
     console.log("*************************************************************");
+
 });
 
 server.bind(port, host);
