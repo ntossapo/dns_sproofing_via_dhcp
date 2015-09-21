@@ -1,15 +1,27 @@
 /**
  * Created by benvo_000 on 18/8/2558.
  */
-var listeningPort = 67;
-var proofingPort = 68;
-var host = "192.168.1.24";
+var config = {
+    listeningPort : 67,
+    proofingPort : 68,
+    host : "172.26.240.205",
+    hexHost : "ac1af0cd",
+    hexSubnetMask : "ffffff00",
+    hexRouter : "ac1af001",
+    hexDomainNameServer : "ac1af0cd",
+    hexDomainName : "6162636465662e636f6d",
+    hexIpAddrLeaseTime : "",
+    hexRenewalTimeValue : "",
+    hexRebindingTimeValue : "",
+};
 
 var dgram = require('dgram');
 var server = dgram.createSocket('udp4');
 var response = {
     transactionId: "",
     requestIpAddress : "",
+    requestIpAddressHex : "",
+    clientMacAddress : "",
     dhcpServerProofingIp : "ac1af25f",
     dhcpSubnetProofingIp : "ffffff00",
     dhcpRouterProofingIp : "c0a80101",
@@ -17,47 +29,79 @@ var response = {
     dhcpDnsName : "656565",
     dhcpIPAddrTimeLease : "00000e10",
     dhcpMessageTypeProofing : "05",
-    /*res :   "0000000000009cd2" + "1e6606ed00000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "000000000000" + "63825363",*/
-    messageBuffer : function(){
-        return new Buffer("02010600"
-            + this.transactionId + "000000000000" + "0000" + this.requestIpAddress + "0000" +
-            "0000000000009cd2" + "1e6606ed00000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "0000000000000000" + "0000000000000000" +
-            "000000000000" +
-            "63825363" +
-            "3501" + response.dhcpMessageTypeProofing +
-            "3604" + response.dhcpServerProofingIp +
-            "0104" + response.dhcpSubnetProofingIp +
-            "0304" + response.dhcpRouterProofingIp +
-            "0604" + response.dhcpDnsProofingIp +
-            "0f03" + response.dhcpDnsName +
-            "3304" + response.dhcpIPAddrTimeLease +
-            "3a0400000708" +
-            "3b0400000c4e" +
-            "ff"
-            , "hex");
+    optionRequest : [53, 54],
+    buildOption : function(){
+
+    },
+    getMessage : function(){
+        var stringBuilder = "";
+        stringBuilder += "02";                      //message type : boot reply
+        stringBuilder += "01";                      //hardware type : eth
+        stringBuilder += "06";                      //hardware addr length : 6
+        stringBuilder += "00";                      //hops : 0
+        stringBuilder += this.transactionId;        //transaction id
+        stringBuilder += "00";                      //seconds elapsed
+        stringBuilder += "0000";                    //bootpflags;
+        stringBuilder += "00000000";                //client ip addr
+        stringBuilder += this.requestIpAddressHex;     //your client ip addr
+        stringBuilder += "00000000";                //next server ip addr
+        stringBuilder += "00000000";                //relay agent ip addr
+        stringBuilder += this.clientMacAddress;     //client Mac addr
+        stringBuilder += "00000000000000000000";    //client hardware addr padding
+
+        for(var i=0;i < 64; i++)                    //server host name not given
+            stringBuilder += "00";
+
+        for(var i=0; i < 16; i++)                   //boot file name not given
+            stringBuilder += "00000000";
+
+        stringBuilder += "63825363";                //magic cookie : dhcp
+
+        stringBuilder += "350105";                  //DHCP message type : ack
+
+        for(var i=0; i < this.optionRequest; i++){
+            switch(this.optionRequest[i]){
+                case 53 :
+                    stringBuilder += "350105";
+                    break;
+                case 54 :
+                    stringBuilder += "3601";
+                    stringBuilder += hostHex;
+                    break;
+                case 1 :
+                    stringBuilder += "0104";
+                    stringBuilder += config.hexSubnetMask;
+                    break;
+                case 3 :
+                    stringBuilder += "0304";
+                    stringBuilder += config.hexRouter;
+                    break;
+                case 6 :
+                    stringBuilder += "0604";
+                    stringBuilder += config.hexDomainNameServer;
+                    break;
+                case 15 :
+                    stringBuilder += "0f";
+                    stringBuilder += parseInt(config.hexDomainName.length/2, 16).toString();
+                    stringBuilder += config.hexDomainName;
+                    break;
+                case 51 :
+                    stringBuilder += "330400000e10";
+                    break;
+                case 58 :
+                    stringBuilder += "3a0400000708";
+                    break;
+                case 59 :
+                    stringBuilder += "3b0400000c4e";
+                    break;
+                default :
+                    console.log("not found " + this.optionRequest[i]);
+            }
+
+        }
+
+        stringBuilder += "ff";
+        return stringBuilder;
     },
 };
 var dhcpRequestType = {
@@ -91,6 +135,8 @@ var requestItemList = {
     46: "NetBIOS over TCP/IP Node Type",
     47: "NetBIOS over TCP/IP Scope",
     51: "IP Address Lease Time",
+    53: "DHCP MEssage Type",
+    54: "DHCP Server Identifier",
     58: "Renewal Time Value",
     59: "Rebinding Time Value",
     119: "Domain Search",
@@ -122,7 +168,8 @@ server.on('message', function(message, remote){
     console.log(message.length);
     response.transactionId = message.toString("hex", 4, 8);
     console.log("Transaction Id: 0x" + response.transactionId);
-    console.log("Client Mac Address: " + message.toString("hex", 28, 29) + ":" + message.toString("hex", 29, 30) + ":" + message.toString("hex", 30, 31) + ":" + message.toString("hex", 31, 32) + ":" + message.toString("hex", 32, 33) + ":" + message.toString("hex", 33, 34));
+    response.clientMacAddress = message.toString("hex", 28, 34);
+    console.log("Client Mac Address: " + response.clientMacAddress);
     for(var i = 0;i < message.length;i++){
         if(message.toString("hex", i, i+4) == "63825363"){
             for(j=i;j<message.length;j++){
@@ -133,11 +180,10 @@ server.on('message', function(message, remote){
                 if(message.toString("hex", j, j+1) == "35" && checker["MessageType"] == false){
                     console.log("Request Type : " + dhcpRequestType[message[j+2]]);
                     checker["MessageType"] = true;
-                    res += "3501" + response.dhcpMessageTypeProofing;
                     j=j+2;
                 }
                 if(message.toString("hex", j, j+1) == "32" && checker["RequestIp"] == false){
-                    response.requestIpAddress = message.toString(j+2, j+6, "hex");
+                    response.requestIpAddressHex = message.toString(j+2, j+6, "hex");
                     console.log("Request For IP : " + message[j+2] + "." + message[j+3] + "." + message[j+4] + "." + message[j+5]);
                     checker["RequestIp"] = true;
                     j=j+5;
@@ -153,6 +199,7 @@ server.on('message', function(message, remote){
                     var length = message[j+1];
                     for(var k = j+2; k < j+length; k++){
                         console.log("\t- " + requestItemList[message[k]]);
+                        response.optionRequest.push(message[k]);
                     }
                     checker["RequestOption"] = true;
                 }
@@ -160,13 +207,9 @@ server.on('message', function(message, remote){
             break;
         }
     }
-    var res = response.messageBuffer();
-    console.log(res);
-    server.send(res, 0, res.length, proofingPort, "192.168.1.10", function(err){
-        console.log(err);
-    });
-    console.log("send messageBuffer");
-    console.log("*************************************************************");
+
+    response.optionRequest.clear();
+    console.log(response.getMessage());
 });
 
-server.bind(listeningPort, host);
+server.bind(config.listeningPort, config.host);

@@ -2,7 +2,7 @@
  * Created by benvo_000 on 18/8/2558.
  */
 var port = 67;
-var host = "192.168.1.24";
+var host = "192.168.1.15";
 
 var dgram = require('dgram');
 var server = dgram.createSocket('udp4');
