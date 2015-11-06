@@ -4,9 +4,9 @@
 var config = {
     listeningPort : 67,
     proofingPort : 68,
-    host : "172.19.74.176",
+    host : "172.19.74.6",
     subnet : "255.255.255.0",
-    router : "172.19.74,1",
+    router : "192.168.1.1",
     dns : "192.168.192.6"
 };
 
@@ -100,10 +100,10 @@ var bootpResponse = {
         bootpResponse.transactionId = bootpProtocal.transactionId;
         bootpResponse.yourIpAddress = bootpProtocal.option.requestedIpAddress;
         bootpResponse.clientMacAddress = bootpProtocal.clientMacAddress;
-        bootpResponse.dhcpServerIdentifier = Buffer.concat([new Buffer("3604", "hex"), new Buffer("ac134ab0", "hex")]);
+        bootpResponse.dhcpServerIdentifier = Buffer.concat([new Buffer("3604", "hex"), new Buffer("ac134a06", "hex")]);
         bootpResponse.subnetMask = Buffer.concat([new Buffer("0104", "hex"), new Buffer("ffffff00", "hex")]);
-        bootpResponse.router = Buffer.concat([new Buffer("0304", "hex"), new Buffer("ac134a01", "hex")]);
-        bootpResponse.domainNameServer = Buffer.concat([new Buffer("0604", "hex"), new Buffer("ac134ab0", "hex")]);
+        bootpResponse.router = Buffer.concat([new Buffer("0304", "hex"), new Buffer("ac134a06", "hex")]);
+        bootpResponse.domainNameServer = Buffer.concat([new Buffer("0604", "hex"), new Buffer("ac134a06", "hex")]);
         bootpResponse.domainName = Buffer.concat([new Buffer("0f0a", "hex"), new Buffer("7073752e61632e746800", "hex")]);
         var arrayConcat = [
             bootpResponse.messsageType,
