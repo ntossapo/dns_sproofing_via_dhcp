@@ -12,6 +12,7 @@ var config = {
     dns : "192.168.1.2",
     dnsname : "testdnsserver"
 };
+// console.log(util.IpToHex(config.host));
 
 
 var requestItemList = {
