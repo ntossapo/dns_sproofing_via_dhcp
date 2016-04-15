@@ -16,6 +16,8 @@
 ### วิธีใช้
 ------
 จำเป็นต้องมี โปรแกรม nodejs ในการทำงาน
+
+เปิดไฟล์ dhcp_req_catcher_and_resp[MAIN].js และแก้ไขข้อมูลดังนี้
 ```javascript
 var config = {
     listeningPort : 67,
@@ -26,6 +28,11 @@ var config = {
     dns : "192.168.1.2",
     dnsname : "testdnsserver"
 };
+```
+
+รันโปรแกรม
+```bash
+node dhcp_req_catcher_and_resp[MAIN].js
 ```
 *แก้ไขข้อมูลในตัวแปร ซึ่ง host จำเป็นจะต้องเป็น ip ของตน
 
