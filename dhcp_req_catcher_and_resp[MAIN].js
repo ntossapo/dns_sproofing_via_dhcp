@@ -1,14 +1,18 @@
 /**
  * Created by benvo_000 on 19/9/2558.
  */
+
+var util = require('./util');
 var config = {
     listeningPort : 67,
     proofingPort : 68,
-    host : "172.19.74.6",
+    host : "192.168.1.2",
     subnet : "255.255.255.0",
     router : "192.168.1.1",
-    dns : "192.168.192.6"
+    dns : "192.168.1.2",
+    dnsname : "testdnsserver"
 };
+
 
 var requestItemList = {
     1: "Subnet Mask",
@@ -40,17 +44,8 @@ var requestItemList = {
     252: "Private/Proxy Auto-Discovery"
 };
 
-var dhcpRequestType = {
-    1 : "DHCP Discover messageBuffer (DHCPDiscover)",
-    2 : "DHCP Offer messageBuffer (DHCPOffer)",
-    3 : "DHCP Request messageBuffer (DHCPRequest)",
-    4 : "DHCP Decline messageBuffer (DHCPDecline)",
-    5 : "DHCP Acknowledgment messageBuffer (DHCPAck)",
-    6 : "DHCP Negative Acknowledgment messageBuffer (DHCPNak)",
-    7 : "DHCP Release messageBuffer (DHCPRelease)",
-    8 : "DHCP Informational messageBuffer (DHCPInform)",
-};
 
+// config bootp respnse before response
 var bootpResponse = {
     messsageType : new Buffer("02", "hex"),
     hardwareType : new Buffer("01", "hex"),
@@ -85,13 +80,16 @@ var bootpResponse = {
         }
         return new Buffer(bufferString, "hex");
     },
+    //default magic cookie
     magicCookie : new Buffer("63825363", "hex"),
+    //default dhcp messsage type
     dhcpMessageType : new Buffer("350105", "hex"),
     dhcpServerIdentifier : null,
     subnetMask : null,
     router : null,
     domainNameServer : null,
     domainName : null,
+    //3x is type of option, 04 is length, other is value
     ipAddressLeaseTime : new Buffer("330400000e10", "hex"),
     renewalTimeValue : new Buffer("3a0400000708", "hex"),
     rebindingTimeValue : new Buffer("3b0400000c4e", "hex"),
@@ -100,11 +98,11 @@ var bootpResponse = {
         bootpResponse.transactionId = bootpProtocal.transactionId;
         bootpResponse.yourIpAddress = bootpProtocal.option.requestedIpAddress;
         bootpResponse.clientMacAddress = bootpProtocal.clientMacAddress;
-        bootpResponse.dhcpServerIdentifier = Buffer.concat([new Buffer("3604", "hex"), new Buffer("ac134a06", "hex")]);
-        bootpResponse.subnetMask = Buffer.concat([new Buffer("0104", "hex"), new Buffer("ffffff00", "hex")]);
-        bootpResponse.router = Buffer.concat([new Buffer("0304", "hex"), new Buffer("ac134a06", "hex")]);
-        bootpResponse.domainNameServer = Buffer.concat([new Buffer("0604", "hex"), new Buffer("ac134a06", "hex")]);
-        bootpResponse.domainName = Buffer.concat([new Buffer("0f0a", "hex"), new Buffer("7073752e61632e746800", "hex")]);
+        bootpResponse.dhcpServerIdentifier = Buffer.concat([new Buffer("3604", "hex"), new Buffer(util.ipToHex(config.host), "hex")]);
+        bootpResponse.subnetMask = Buffer.concat([new Buffer("0104", "hex"), new Buffer(util.ipToHex(config.subnet), "hex")]);
+        bootpResponse.router = Buffer.concat([new Buffer("0304", "hex"), new Buffer(util.ipToHex(config.router), "hex")]);
+        bootpResponse.domainNameServer = Buffer.concat([new Buffer("0604", "hex"), new Buffer(util.ipToHex(config.dns), "hex")]);
+        bootpResponse.domainName = Buffer.concat([new Buffer("0f"+util.LengthToHex(config.dnsname.length), "hex"), new Buffer(util.StringToHex(config.dnsname), "hex")]);
         var arrayConcat = [
             bootpResponse.messsageType,
             bootpResponse.hardwareType,
@@ -177,10 +175,6 @@ var utilityFunction = {
         return false;
     }
 }
-
-var networkFunction = {
-
-};
 
 var dhcpRequestType = {
     1 : "DHCP Discover (DHCPDiscover)",
